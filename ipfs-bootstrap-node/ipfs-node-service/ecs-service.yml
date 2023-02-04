@@ -1,0 +1,273 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a service on AWS Fargate, hosted in a public subnet.
+Parameters:
+  StackName:
+    Type: String
+    Default: production
+    Description: The name of the parent Fargate networking stack that you created. Necessary
+                 to locate and reference resources created by that stack.
+  ServiceName:
+    Type: String
+    Default: ipfs
+    Description: A name for the service
+  SSLCertificateARN: 
+    Type: String
+    Description: The Arn of the SSL Certificate to use on the secure ports
+  ImageUrl:
+    Type: String
+    Description: The url of a docker image that contains the application process that
+                 will handle the traffic for this service
+  ContainerCpu:
+    Type: Number
+    Default: 256
+    Description: How much CPU to give the container. 1024 is 1 CPU
+  ContainerMemory:
+    Type: Number
+    Default: 512
+    Description: How much memory in megabytes to give the container
+  DesiredCount:
+    Type: Number
+    Default: 2
+    Description: How many copies of the service task to run
+
+Resources:
+  # The task definition. This is a simple metadata description of what
+  # container to run, and what resource requirements it has.
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition  
+    Properties:
+      Family: !Ref 'ServiceName'
+      Cpu: !Ref 'ContainerCpu'
+      Memory: !Ref 'ContainerMemory'
+      NetworkMode: awsvpc
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskRole']]
+      Volumes:
+        - Name: EfsVolume
+          EFSVolumeConfiguration:
+            FilesystemId:
+              Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'EFSFileSystem']]
+            AuthorizationConfig:
+              IAM: ENABLED
+            TransitEncryption: ENABLED
+            RootDirectory: "/"
+      ContainerDefinitions:
+        - Name: !Ref 'ServiceName'
+          Cpu: !Ref 'ContainerCpu'
+          Memory: !Ref 'ContainerMemory'
+          Image: !Ref 'ImageUrl'
+          MountPoints:
+            - SourceVolume: "EfsVolume"
+              ContainerPath: "/root/.jsipfs"
+          Interactive: true
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-region: us-east-2
+              awslogs-group: !Sub 'service-${ServiceName}'
+              awslogs-create-group: true
+              awslogs-stream-prefix: !Ref 'ServiceName'
+          PortMappings:
+            - ContainerPort: 4002
+            - ContainerPort: 8081
+            - ContainerPort: 5002
+            - ContainerPort: 9090
+            
+
+  # The service. The service is a resource which allows you to run multiple
+  # copies of a type of task, and gather up their logs and metrics, as well
+  # as monitor the number of running tasks and replace any that have crashed
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref 'ServiceName'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+      DesiredCount: !Ref 'DesiredCount'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PublicSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PublicSubnetTwo']]
+      TaskDefinition: !Ref 'TaskDefinition'
+      LoadBalancers:
+        - ContainerName: !Ref 'ServiceName'
+          ContainerPort: 5002
+          TargetGroupArn: !Ref 'TargetGroup5002'
+        - ContainerName: !Ref 'ServiceName'
+          ContainerPort: 4002
+          TargetGroupArn: !Ref 'TargetGroup4002'
+        - ContainerName: !Ref 'ServiceName'
+          ContainerPort: 8081
+          TargetGroupArn: !Ref 'TargetGroup8081'
+        - ContainerName: !Ref 'ServiceName'
+          ContainerPort: 9090
+          TargetGroupArn: !Ref 'TargetGroup9090'
+
+  # A target group. This is used for keeping track of all the tasks, and
+  # what IP addresses / port numbers they have. You can query it yourself,
+  # to use the addresses yourself, but most often this target group is just
+  # connected to an application load balancer, or network load balancer, so
+  # it can automatically distribute traffic across all the targets.
+  TargetGroup5002:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '0'
+        - Key: deregistration_delay.connection_termination.enabled
+          Value: true
+      HealthCheckIntervalSeconds: 6
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /api/v0/id
+      HealthCheckTimeoutSeconds: 5
+      Matcher: 
+        HttpCode: 405
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Join ['-', [!Ref 'ServiceName', '5002']] 
+      Port: 5002
+      Protocol: TCP
+      UnhealthyThresholdCount: 5
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+  TargetGroup4002:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '0'
+        - Key: deregistration_delay.connection_termination.enabled
+          Value: true
+      HealthCheckIntervalSeconds: 6
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 5002
+      HealthCheckPath: /api/v0/id
+      HealthCheckTimeoutSeconds: 5
+      Matcher: 
+        HttpCode: 405
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Join ['-', [!Ref 'ServiceName', '4002']]
+      Port: 4002
+      Protocol: TCP
+      UnhealthyThresholdCount: 5
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+  TargetGroup8081:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '0'
+        - Key: deregistration_delay.connection_termination.enabled
+          Value: true
+      HealthCheckIntervalSeconds: 6
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 5002
+      HealthCheckPath: /api/v0/id
+      HealthCheckTimeoutSeconds: 5
+      Matcher: 
+        HttpCode: 405
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Join ['-', [!Ref 'ServiceName', '8081']]
+      Port: 8081
+      Protocol: TCP
+      UnhealthyThresholdCount: 5
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+  TargetGroup9090:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '0'
+        - Key: deregistration_delay.connection_termination.enabled
+          Value: true
+      HealthCheckIntervalSeconds: 6
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 5002
+      HealthCheckPath: /api/v0/id
+      HealthCheckTimeoutSeconds: 5
+      Matcher: 
+        HttpCode: 405
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Join ['-', [!Ref 'ServiceName', '9090']]
+      Port: 9090
+      Protocol: TCP
+      UnhealthyThresholdCount: 5
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+
+  PublicLoadBalancerListener5002:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref 'TargetGroup5002'
+          Type: 'forward'
+      LoadBalancerArn: 
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicLoadBalancer']]
+      Port: 5002
+      Protocol: TCP
+  PublicLoadBalancerListener4002:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref 'TargetGroup4002'
+          Type: 'forward'
+      LoadBalancerArn: 
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicLoadBalancer']]
+      Port: 4002
+      Protocol: TCP
+  PublicLoadBalancerListener4003:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref 'TargetGroup8081'
+          Type: 'forward'
+      LoadBalancerArn: 
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicLoadBalancer']]
+      Certificates:
+        -  CertificateArn: !Ref 'SSLCertificateARN'
+      Port: 4003
+      Protocol: TLS
+  PublicLoadBalancerListener9090:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref 'TargetGroup9090'
+          Type: 'forward'
+      LoadBalancerArn: 
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicLoadBalancer']]
+      Port: 9090
+      Protocol: TCP
