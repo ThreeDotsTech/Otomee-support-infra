@@ -1,6 +1,40 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A stack for deploying containerized applications in AWS Fargate.
-             This stack runs containers in a public VPC subnet.
+Description: A stack for deploying containerized applications onto a cluster of EC2
+             hosts using Elastic Container Service. This stack runs containers on
+             hosts that are in a public VPC subnet.
+Parameters:
+  DesiredCapacity:
+    Type: Number
+    Default: '3'
+    Description: Number of EC2 instances to launch in your ECS cluster.
+  MaxSize:
+    Type: Number
+    Default: '6'
+    Description: Maximum number of EC2 instances that can be launched in your ECS cluster.
+  ECSAMI:
+    Description: AMI ID
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+  KeypairName:
+    Description: The keypair to use on the EC2 instances
+    Type: String
+  Email:
+    Description: The email to be used by the TSL/SSL certificate process
+    Type: String
+  CloudflareAPIKEYSSM:
+    Description: The name of the SecureString SSM Param where the Cloudflare API key is stored
+    Type: String
+    Default: cloudflareAPIKEY
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: c4.xlarge
+    AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
+      m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
+      c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
+      c3.2xlarge, c3.4xlarge, c3.8xlarge, r3.large, r3.xlarge, r3.2xlarge, r3.4xlarge,
+      r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
+    ConstraintDescription: Please choose a valid instance type.
 Mappings:
   # Hard values for the subnet masks. These masks define
   # the range of internal IP addresses that can be assigned.
@@ -32,6 +66,9 @@ Resources:
       EnableDnsHostnames: true
       CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
 
+  #An Elastic IP to bind to the EC2s
+  EIP:
+    Type: AWS::EC2::EIP
   # Two public subnets, where containers can have public IP addresses
   PublicSubnetOne:
     Type: AWS::EC2::Subnet
@@ -89,7 +126,7 @@ Resources:
   # ECS Resources
   ECSCluster:
     Type: AWS::ECS::Cluster
-  
+
   #Create an EFS to persist data
   EFSFileSystem:
     Type: AWS::EFS::FileSystem
@@ -138,13 +175,13 @@ Resources:
       GroupDescription: "Enable EFS access via port 2049"
       GroupName: "EFS SG"
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref FargateContainerSecurityGroup
+        - SourceSecurityGroupId: !Ref EcsHostSecurityGroup
           IpProtocol: tcp
           FromPort: 2049
           ToPort: 2049
           Description: "For enabling EFS access"
       SecurityGroupEgress:
-        - SourceSecurityGroupId: !Ref FargateContainerSecurityGroup
+        - SourceSecurityGroupId: !Ref EcsHostSecurityGroup
           IpProtocol: tcp
           FromPort: 2049
           ToPort: 2049
@@ -155,7 +192,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Enable EFS access via port 2049
-      GroupId: !Ref 'FargateContainerSecurityGroup' 
+      GroupId: !Ref 'EcsHostSecurityGroup' 
       IpProtocol: tcp
       FromPort: 2049
       ToPort: 2049
@@ -175,32 +212,29 @@ Resources:
       SecurityGroups: [ !Ref EFSSecurityGroup ]
       SubnetId: !Ref PublicSubnetTwo
 
-  # A security group for the containers we will run in Fargate.
-  # Rules allowing network traffic from everywhere on ports used by IPFS and from other members of the security group.
-  FargateContainerSecurityGroup:
+  # One rule, allowing network traffic from other hosts in the security group.
+  #
+  # Remove any of the following ingress rules that are not needed.
+  # If you want to make direct requests to a container using its
+  # public IP address you'll need to add a security group rule
+  # to allow traffic from all IP addresses.
+  EcsHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Access to the Fargate containers
+      GroupDescription: Access to the ECS hosts that run containers
       VpcId: !Ref 'VPC'
   EcsSecurityGroupIngressFromSelf:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: Ingress from other containers in the same security group
-      GroupId: !Ref 'FargateContainerSecurityGroup'
+      Description: Ingress from other hosts in the same security group
+      GroupId: !Ref 'EcsHostSecurityGroup'
       IpProtocol: -1
-      SourceSecurityGroupId: !Ref 'FargateContainerSecurityGroup'
-  EcsSecurityGroupIngressFromPublicALB:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Ingress from the VPN CIDR block to allow NLB traffic
-      GroupId: !Ref 'FargateContainerSecurityGroup'
-      IpProtocol: -1
-      CidrIp: !GetAtt VPC.CidrBlock
+      SourceSecurityGroupId: !Ref 'EcsHostSecurityGroup'
   EcsSecurityGroupIngressIpfs1:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Ingress libp2p swarm port
-      GroupId: !Ref 'FargateContainerSecurityGroup'
+      GroupId: !Ref 'EcsHostSecurityGroup'
       IpProtocol: tcp
       FromPort: 4002
       ToPort: 4002
@@ -209,7 +243,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Ingress libp2p swarm port
-      GroupId: !Ref 'FargateContainerSecurityGroup'
+      GroupId: !Ref 'EcsHostSecurityGroup'
       IpProtocol: tcp
       FromPort: 4003
       ToPort: 4003
@@ -218,7 +252,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Ingress to Web UI (Admin)
-      GroupId: !Ref 'FargateContainerSecurityGroup'
+      GroupId: !Ref 'EcsHostSecurityGroup'
       IpProtocol: tcp
       FromPort: 5002
       ToPort: 5002
@@ -227,60 +261,143 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Ingress to Gateway (Read Only)
-      GroupId: !Ref 'FargateContainerSecurityGroup'
+      GroupId: !Ref 'EcsHostSecurityGroup'
       IpProtocol: tcp
       FromPort: 9090
       ToPort: 9090
       CidrIp: "0.0.0.0/0"
-  
-  # Load balancers for getting traffic to containers.
-  # This sample template creates one load balancer:
-  #
-  # - One public load balancer, hosted in public subnets that is accessible
-  #   to the public, and is intended to route traffic to one or more public
-  #   facing services.
 
-  # A public facing load balancer, this is used for accepting traffic from the public
-  # internet and directing it to public facing microservices
-  
-  
-  PublicLoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  # Autoscaling group. This launches the actual EC2 instances that will register
+  # themselves as members of the cluster, and run the docker containers.
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      Type: network
-      Scheme: internet-facing
-      Subnets:
-        # The load balancer is placed into the public subnets, so that traffic
-        # from the internet can reach the load balancer directly via the internet gateway
+      VPCZoneIdentifier:
         - !Ref PublicSubnetOne
         - !Ref PublicSubnetTwo
-  # A dummy target group is used to setup the ALB to just drop traffic
-  # initially, before any real service target groups have been added.
-  DummyTargetGroupPublic:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      LaunchConfigurationName: !Ref 'ContainerInstances'
+      MinSize: '1'
+      MaxSize: !Ref 'MaxSize'
+      DesiredCapacity: !Ref 'DesiredCapacity'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
+  ContainerInstances:
+    DependsOn: EFSFileSystem
+    Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      HealthCheckIntervalSeconds: 6
-      HealthCheckProtocol: TCP
-      HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 2
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'drop-1']]
-      Port: 80
-      Protocol: TCP
-      UnhealthyThresholdCount: 2
-      VpcId: !Ref 'VPC'
+      ImageId: !Ref 'ECSAMI'
+      SecurityGroups: [!Ref 'EcsHostSecurityGroup']
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeypairName'
+      IamInstanceProfile: !Ref 'EC2InstanceProfile'
+      UserData:
+        Fn::Base64: !Sub 
+          - |
+            #!/bin/bash -xe
+            echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
 
-  # This is an IAM role which authorizes ECS to manage resources on your
-  # account on your behalf, such as updating your load balancer with the
-  # details of where your containers are, so that traffic can reach your
-  # containers.
-  ECSRole:
+            sudo yum -y install nfs-utils awscli aws-cfn-bootstrap
+
+            #Install certbot using python3
+            curl -O https://bootstrap.pypa.io/get-pip.py
+            python3 get-pip.py
+            /usr/local/bin/pip install certbot-dns-cloudflare
+
+            #Get the Cloudflare API Key from the SSM param
+            mkdir ~/.secrets/certbot -p
+            sudo aws --region=${AWS::Region} ssm get-parameter --name "${CloudflareAPIKEYSSM}" --with-decryption --output text --query Parameter.Value >  ~/.secrets/certbot/cloudflare.ini
+            sudo chmod 600 ~/.secrets/certbot/cloudflare.ini
+
+            #Get the certificate
+            sudo /usr/local/bin/certbot certonly \
+              --dns-cloudflare \
+              --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini \
+              -d ipfs.otomee.com \
+              --email ${Email}  --agree-tos --non-interactive
+            
+            # Mount the EFS volume and create the directories
+            mkdir ~/efs-mount-point 
+            sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EfsId}.efs.${AWS::Region}.amazonaws.com:/   ~/efs-mount-point
+            mkdir ~/efs-mount-point/.ipfs || echo folder ~/efs-mount-point/.ipfs already exists
+            mkdir -p ~/efs-mount-point/data/nginx || echo folder ~/efs-mount-point/data/nginx already exists
+            
+            #Copy certificate to EFS volume
+            mv -f /etc/letsencrypt/live/ipfs.otomee.com/* ~/efs-mount-point/data/nginx/
+
+            #Enable auto-renewal
+            SLEEPTIME=$(awk 'BEGIN{srand(); print int(rand()*(3600+1))}'); echo "0 0,12 * * * root sleep $SLEEPTIME && certbot renew -q && mv -f /etc/letsencrypt/live/ipfs.otomee.com/* ~/efs-mount-point/data/nginx/" | sudo tee -a /etc/crontab > /dev/null
+            
+            #Attach the Elastic IP
+            INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+            MAXWAIT=3
+            ALLOC_ID=${EipAllocationID}
+            # Make sure the EIP is free
+            echo "Checking if EIP with ALLOC_ID[$ALLOC_ID] is free...."
+            ISFREE=$(aws ec2 describe-addresses --allocation-ids $ALLOC_ID --query Addresses[].InstanceId --output text --region ${AWS::Region})
+            STARTWAIT=$(date +%s)
+            while [ ! -z "$ISFREE" ]; do
+                if [ "$(($(date +%s) - $STARTWAIT))" -gt $MAXWAIT ]; then
+                    echo "WARNING: We waited 30 seconds, we're forcing it now."
+                    ISFREE=""
+                else
+                    echo "Waiting for EIP with ALLOC_ID[$ALLOC_ID] to become free...."
+                    sleep 3
+                    ISFREE=$(aws ec2 describe-addresses --allocation-ids $ALLOC_ID --query Addresses[].InstanceId --output text --region ${AWS::Region})
+                fi
+            done
+            # Now we can associate the address
+            echo Running: aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ALLOC_ID --allow-reassociation --region ${AWS::Region}
+            aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ALLOC_ID --allow-reassociation --region ${AWS::Region}
+
+            #Signal we are ready
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+          - EfsId: !GetAtt EFSFileSystem.FileSystemId
+            EipAllocationID: !GetAtt EIP.AllocationId
+            Email: !Ref Email
+            CloudflareAPIKEYSSM: !Ref CloudflareAPIKEYSSM
+  AutoscalingRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
           Principal:
-            Service: [ecs.amazonaws.com]
+            Service: [application-autoscaling.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: service-autoscaling
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'application-autoscaling:*'
+              - 'cloudwatch:DescribeAlarms'
+              - 'cloudwatch:PutMetricAlarm'
+              - 'ecs:DescribeServices'
+              - 'ecs:UpdateService'
+            Resource: '*'
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: [!Ref 'EC2Role']
+
+  # Role for the EC2 hosts. This allows the ECS agent on the EC2 hosts
+  # to communciate with the ECS control plane, as well as download the docker
+  # images from ECR to run on your host.
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ec2.amazonaws.com]
           Action: ['sts:AssumeRole']
       Path: /
       Policies:
@@ -289,23 +406,26 @@ Resources:
           Statement:
           - Effect: Allow
             Action:
-              # Rules which allow ECS to attach network interfaces to instances
-              # on your behalf in order for awsvpc networking mode to work right
-              - 'ec2:AttachNetworkInterface'
-              - 'ec2:CreateNetworkInterface'
-              - 'ec2:CreateNetworkInterfacePermission'
-              - 'ec2:DeleteNetworkInterface'
-              - 'ec2:DeleteNetworkInterfacePermission'
-              - 'ec2:Describe*'
-              - 'ec2:DetachNetworkInterface'
-
-              # Rules which allow ECS to update load balancers on your behalf
-              # with the information sabout how to send traffic to your containers
-              - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
-              - 'elasticloadbalancing:DeregisterTargets'
-              - 'elasticloadbalancing:Describe*'
-              - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
-              - 'elasticloadbalancing:RegisterTargets'
+              - 'ecs:CreateCluster'
+              - 'ecs:DeregisterContainerInstance'
+              - 'ecs:DiscoverPollEndpoint'
+              - 'ecs:Poll'
+              - 'ecs:RegisterContainerInstance'
+              - 'ecs:StartTelemetrySession'
+              - 'ecs:Submit*'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+              - 'ecr:GetAuthorizationToken'
+              - 'ecr:BatchGetImage'
+              - 'ecr:GetDownloadUrlForLayer'
+              - 'ec2:DescribeAddresses'
+              - 'ec2:AllocateAddress'
+              - 'ec2:DescribeInstances'
+              - 'ec2:AssociateAddress'
+              - 'elasticfilesystem:ClientMount'
+              - 'elasticfilesystem:ClientRootAccess'
+              - 'elasticfilesystem:ClientWrite'
+              - 'ssm:GetParameter'
             Resource: '*'
 
   # This is a role which is used by the ECS tasks themselves.
@@ -346,28 +466,13 @@ Outputs:
     Value: !Ref 'ECSCluster'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ClusterName' ] ]
-  ExternalUrl:
-    Description: The url of the external load balancer
-    Value: !Join ['', ['http://', !GetAtt 'PublicLoadBalancer.DNSName']]
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ExternalUrl' ] ]
   ECSTaskExecutionRole:
     Description: The ARN of the ECS role
     Value: !GetAtt 'ECSTaskExecutionRole.Arn'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ECSTaskExecutionRole' ] ]
-  ECSRole:
-    Description: The ARN of the ECS role
-    Value: !GetAtt 'ECSRole.Arn'
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ECSRole' ] ]
-  PublicLoadBalancer:
-    Description: The ARN of the public load balancer
-    Value: !Ref PublicLoadBalancer
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicLoadBalancer' ] ]
   ECSTaskRole:
-    Description: The ARN of the ECS role
+    Description: The ARN of the ECS Task role
     Value: !GetAtt 'ECSTaskRole.Arn'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ECSTaskRole' ] ]
@@ -386,11 +491,11 @@ Outputs:
     Value: !Ref 'PublicSubnetTwo'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetTwo' ] ]
-  FargateContainerSecurityGroup:
-    Description: A security group used to allow Fargate containers to receive traffic
-    Value: !Ref 'FargateContainerSecurityGroup'
+  EcsHostSecurityGroup:
+    Description: A security group used to allow containers to receive traffic
+    Value: !Ref 'EcsHostSecurityGroup'
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'FargateContainerSecurityGroup' ] ]
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'EcsHostSecurityGroup' ] ]
   EFSFileSystem:
     Description: Thre EFS to persist data between services
     Value: !Ref 'EFSFileSystem'
