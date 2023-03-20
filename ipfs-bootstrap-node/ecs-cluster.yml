@@ -326,7 +326,7 @@ Resources:
             mkdir -p ~/efs-mount-point/data/nginx || echo folder ~/efs-mount-point/data/nginx already exists
             
             #Copy certificate to EFS volume
-            mv -f /etc/letsencrypt/live/ipfs.otomee.com/* ~/efs-mount-point/data/nginx/
+            mv -rf /etc/letsencrypt/ ~/efs-mount-point/data/nginx/
 
             #Enable auto-renewal
             SLEEPTIME=$(awk 'BEGIN{srand(); print int(rand()*(3600+1))}'); echo "0 0,12 * * * root sleep $SLEEPTIME && certbot renew -q && mv -f /etc/letsencrypt/live/ipfs.otomee.com/* ~/efs-mount-point/data/nginx/" | sudo tee -a /etc/crontab > /dev/null
