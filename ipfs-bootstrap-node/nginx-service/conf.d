@@ -1,0 +1,38 @@
+server {
+    server_name ipfs.otomee.com;
+    listen [::]:4002 ssl ipv6only=on;
+    listen 4002 ssl;
+    ssl_certificate /etc/letsencrypt/live/ipfs.otomee.com/fullchain.pem; #To be mounted on the EFS volume
+    ssl_certificate_key /etc/letsencrypt/live/ipfs.otomee.com/privkey.pem; #To be mounted on the EFS volume
+    include /etc/nginx/options-ssl-nginx.conf;
+    ssl_dhparam /etc/nginx/ssl-dhparams.pem; 
+    location / {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+server {
+    server_name ipfs.otomee.com;
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl; 
+    ssl_certificate /etc/letsencrypt/live/ipfs.otomee.com/fullchain.pem; #To be mounted on the EFS volume
+    ssl_certificate_key /etc/letsencrypt/live/ipfs.otomee.com/privkey.pem; #To be mounted on the EFS volume
+    include /etc/nginx/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/nginx/ssl-dhparams.pem; 
+}
+server {
+    if ($host = ipfs.otomee.com) {
+        return 301 https://$host$request_uri;
+    } 
+    listen 80 ;
+    listen [::]:80 ;
+    server_name ipfs.otomee.com;
+    return 404; 
+}
