@@ -14,7 +14,6 @@ RUN apk del build-base python git
 
 # Configure jsipfs
 RUN jsipfs init
-
 RUN jsipfs version
 
 # Allow connections from any host
