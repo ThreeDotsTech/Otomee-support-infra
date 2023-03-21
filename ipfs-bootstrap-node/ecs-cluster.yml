@@ -323,7 +323,8 @@ Resources:
             mkdir ~/efs-mount-point 
             sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EfsId}.efs.${AWS::Region}.amazonaws.com:/   ~/efs-mount-point
             mkdir ~/efs-mount-point/.ipfs || echo folder ~/efs-mount-point/.ipfs already exists
-            mkdir -p ~/efs-mount-point/data/nginx || rm -r ~/efs-mount-point/data/nginx/*
+            mkdir -p ~/efs-mount-point/data/nginx
+            rm -r ~/efs-mount-point/data/nginx/*
             
             #Copy certificate to EFS volume
             mv -f /etc/letsencrypt/ ~/efs-mount-point/data/nginx/
