@@ -19,6 +19,7 @@ RUN jsipfs version
 
 # Allow connections from any host
 RUN sed -i.bak "s/127.0.0.1/0.0.0.0/g" $IPFS_PATH/config
+RUN sed -i.bak "s/4003/8081/g" $IPFS_PATH/config
 
 EXPOSE 4002
 EXPOSE 8081
