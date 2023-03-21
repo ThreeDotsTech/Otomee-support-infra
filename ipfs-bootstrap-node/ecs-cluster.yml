@@ -281,7 +281,7 @@ Resources:
       DesiredCapacity: !Ref 'DesiredCapacity'
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT15M
+        Timeout: PT5M
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: 'true'
