@@ -75,8 +75,6 @@ Resources:
             - ContainerPort: 80
             - ContainerPort: 443
             - ContainerPort: 4003
-            - ContainerPort: 8081
-            - ContainerPort: 9090
             
 
   # The service. The service is a resource which allows you to run multiple

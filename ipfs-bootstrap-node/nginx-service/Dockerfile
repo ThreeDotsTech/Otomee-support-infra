@@ -7,5 +7,3 @@ COPY ssl-dhparams.pem /etc/nginx/ssl-dhparams.pem
 EXPOSE 443 
 EXPOSE 80
 EXPOSE 4003
-EXPOSE 8081
-EXPOSE 9090
