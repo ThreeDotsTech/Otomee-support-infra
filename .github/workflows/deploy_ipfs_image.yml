@@ -13,7 +13,7 @@ jobs:
     
     name: Build Image
     runs-on: ubuntu-latest
-    
+
     steps:
 
     - name: Check out code
@@ -36,7 +36,7 @@ jobs:
         ECR_REPOSITORY: ipfs-node
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY ipfs-bootstrap-node/ipfs-node-service
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY ipfs-bootstrap-node/ipfs-node-service --env-file ipfs-bootstrap-node/ipfs-node-service/env
         docker push $ECR_REGISTRY/$ECR_REPOSITORY
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
