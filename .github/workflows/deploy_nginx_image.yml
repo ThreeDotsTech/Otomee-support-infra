@@ -1,9 +1,11 @@
-name: Deploy images to ECR
+name: Deploy nginx proxy image to ECR
 
 on:
  
   push:
     branches: [ main ]
+    paths:
+      - 'ipfs-bootstrap-node/nginx-service/**'
 
 jobs:
   
