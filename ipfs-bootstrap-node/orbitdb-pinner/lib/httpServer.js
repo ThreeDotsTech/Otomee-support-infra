@@ -26,18 +26,6 @@ class server {
       })
     })
 
-    app.create('/create', (req, res) => {
-      const address = req.query.address
-
-      if (req.query.address) {
-        pinningList.add(address)
-
-        res.send(`adding... ${address}`)
-      } else {
-        res.send('missing \'address\' query parameter')
-      }
-    })
-
     app.get('/pin', (req, res) => {
       const address = req.query.address
 
