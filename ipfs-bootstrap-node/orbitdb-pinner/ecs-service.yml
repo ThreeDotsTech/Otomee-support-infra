@@ -45,24 +45,24 @@ Resources:
       TaskRoleArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ECSTaskRole']]
-      # Volumes:
-      #   - Name: efsvolume
-      #     EFSVolumeConfiguration:
-      #       FilesystemId:
-      #         Fn::ImportValue:
-      #           !Join [':', [!Ref 'StackName', 'EFSFileSystem']]
-      #       AuthorizationConfig:
-      #         IAM: ENABLED
-      #       TransitEncryption: ENABLED
-      #       RootDirectory: "/orbitdb/nginx/letsencrypt/"
+      Volumes:
+        - Name: efsvolume
+          EFSVolumeConfiguration:
+            FilesystemId:
+              Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'EFSFileSystem']]
+            AuthorizationConfig:
+              IAM: ENABLED
+            TransitEncryption: ENABLED
+            RootDirectory: "/orbitdb/"
       ContainerDefinitions:
         - Name: !Ref 'ServiceName'
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
           Image: !Ref 'ImageUrl'
-          # MountPoints:
-          #   - SourceVolume: "efsvolume"
-          #     ContainerPath: "/etc/letsencrypt"
+          MountPoints:
+            - SourceVolume: "efsvolume"
+              ContainerPath: "/usr/src/app/orbitdb/"
           Interactive: true
           LogConfiguration: 
             LogDriver: awslogs
