@@ -5,21 +5,22 @@ let orbitdb
 
 
 class Pinner {
-/*   constructor(address) {
-    require('./ipfsInstance').then(async (ipfs) => {
-      Identities.createIdentity({
-        type: "ethereum",
-      }).then(async (identity) => {
-        this.orbitdb = await OrbitDB.createInstance(ipfs, { identity })
-        Pinner.openDatabase(this.orbitdb, address)
-      })
-    }).catch(console.error)
-  } */
+  /*   constructor(address) {
+      require('./ipfsInstance').then(async (ipfs) => {
+        Identities.createIdentity({
+          type: "ethereum",
+        }).then(async (identity) => {
+          this.orbitdb = await OrbitDB.createInstance(ipfs, { identity })
+          Pinner.openDatabase(this.orbitdb, address)
+        })
+      }).catch(console.error)
+    } */
 
 
   static async create(address) {
     console.log('creating db for', address)
     const ipfs = await require('./ipfsInstance')
+    console.log('new ipfs instance created?')
     if (!this.orbitdb) {
       Identities.createIdentity({
         type: "ethereum",
