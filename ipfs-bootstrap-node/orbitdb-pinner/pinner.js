@@ -28,9 +28,10 @@ if (!address && !http && !follow) {
 } else if (address) {
   // TODO maybe here need to create
   console.log('Starting, from a given address')
+  //TODO: Fix this, can't pass address
   new OrbitPinner(address) /* eslint-disable-line */
 } else if (http) {
-	console.log('starting http')
+  console.log('starting http')
   new HttpServer(port) /* eslint-disable-line */
 } else if (follow) {
   console.log('following')
