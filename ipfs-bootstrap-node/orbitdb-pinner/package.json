@@ -1,0 +1,48 @@
+{
+  "name": "orbitdb-pinner",
+  "version": "0.2.0",
+  "description": "An orbitdb pinning service",
+  "main": "pinner.js",
+  "scripts": {
+    "start": "node pinner.js",
+    "test": "nyc mocha",
+    "lint:fix": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jon-Biz/orbitdb-pinner.git"
+  },
+  "keywords": [
+    "ipfs",
+    "orbitdb",
+    "distributed",
+    "computing"
+  ],
+  "author": "Jonathan El-Bizri",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jon-Biz/orbitdb-pinner/issues"
+  },
+  "standard": {
+    "env": "mocha"
+  },
+  "homepage": "https://github.com/Jon-Biz/orbitdb-pinner#readme",
+  "dependencies": {
+    "command-line-args": "^5.1.1",
+    "config": "^3.3.1",
+    "express": "^4.17.1",
+    "ipfs": "^0.52.0",
+    "orbit-db": "^0.28.0",
+    "orbit-db-identity-provider": "^0.4.0",
+    "ipfs-http-client": "^53.0.0",
+    "ipfsd-ctl": "^7.0.0"
+  },
+  "devDependencies": {
+    "assert": "^2.0.0",
+    "mocha": "^8.1.1",
+    "node-fetch": "^2.6.1",
+    "nyc": "^15.0.1",
+    "rimraf": "^3.0.2",
+    "standard": "^14.3.3"
+  }
+}
