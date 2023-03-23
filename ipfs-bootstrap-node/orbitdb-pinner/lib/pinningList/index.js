@@ -117,7 +117,6 @@ startPinning()
 
 module.exports = {
   add,
-  create,
   getContents,
   getPinners,
   remove,
