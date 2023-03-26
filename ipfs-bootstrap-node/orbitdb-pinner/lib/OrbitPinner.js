@@ -73,7 +73,8 @@ class Pinner {
       }
 
       console.log(`opening database from ${address}`)
-      const db = await orbitdb.open(address, { sync: true, timeout: 1000000 })
+      // Opening timeouts are like so: orbitdb.open(address, { sync: true, timeout: 1000000 })
+      const db = await orbitdb.open(address, { sync: true })
 
       console.log('Listening for updates to the database...')
       await db.load()
