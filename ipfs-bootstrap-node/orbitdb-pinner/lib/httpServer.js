@@ -38,6 +38,17 @@ class server {
       }
     })
 
+    app.get('/create', (req, res) => {
+      const name = req.query.name
+
+      if (req.query.name) {
+        const address = pinningList.create(name)
+        res.send(address)
+      } else {
+        res.send('missing \'name\' query parameter')
+      }
+    })
+
     app.get('/unpin', (req, res) => {
       const address = req.query.address
 

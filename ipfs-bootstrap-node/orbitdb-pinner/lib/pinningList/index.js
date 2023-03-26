@@ -41,6 +41,17 @@ const add =
     }
   }
 
+const create =
+  async (name) => {
+    const db = await orbitInstance()
+
+    const pinner = await OrbitPinner.new(name)
+
+    await db.add(pinner.address)
+    console.log(`${pinner.address} added to pinner.`)
+    return pinner.address
+  }
+
 const createPinnerInstance =
   async (address) => {
     if (!OrbitDB.isValidAddress(address)) {
@@ -117,6 +128,7 @@ startPinning()
 
 module.exports = {
   add,
+  create,
   getContents,
   getPinners,
   remove,

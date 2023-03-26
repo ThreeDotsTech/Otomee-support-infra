@@ -22,6 +22,17 @@ class Pinner {
     return Promise.resolve(new Pinner(db))
   }
 
+  static async new(name) {
+    console.log('creating new db with name', name)
+    const ipfs = await require('./ipfsInstance')
+    if (!orbitdb) {
+      let identity = await Identities.createIdentity({ type: "ethereum" })
+      orbitdb = await OrbitDB.createInstance(ipfs, { identity })
+    }
+    const db = await Pinner.createDatabase(orbitdb, name)
+    return Promise.resolve(new Pinner(db))
+  }
+
   drop() {
     // console.log(this.orbitdb)
     // this.orbitdb.disconnect()
@@ -36,6 +47,19 @@ class Pinner {
     }
 
     return size
+  }
+
+  static async createDatabase(orbitdb, name) {
+    console.log('creating db: ', address)
+    try {
+      const db = await orbitdb.docstore(name, { indexBy: 'hash', accessController: { write: ['*'] } })
+      console.log('Database created')
+      await db.load()
+      console.log(db.id)
+      return db
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   static async openDatabase(orbitdb, address) {
