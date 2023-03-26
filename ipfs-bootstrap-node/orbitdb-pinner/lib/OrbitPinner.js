@@ -51,7 +51,7 @@ class Pinner {
   }
 
   static async createDatabase(orbitdb, name) {
-    console.log('creating db: ', address)
+    console.log('creating db: ', name)
     try {
       const db = await orbitdb.docstore(name, { indexBy: 'hash', accessController: { write: ['*'] } })
       console.log('Database created')

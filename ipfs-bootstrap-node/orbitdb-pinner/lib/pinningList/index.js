@@ -85,17 +85,17 @@ const remove =
       return
     }
 
-    // if (!pinners[address]) {
-    //   console.log(`Failed to unpin ${address}. Address not found in pinning list.`)
-    //   return
-    // }
+    if (!pinners[address]) {
+      console.log(`Failed to unpin ${address}. Address not found in pinning list.`)
+      return
+    }
 
     const db = await orbitInstance()
     const dbAddresses = await getContents()
 
     // stop pinning
-    // pinners[address].drop()
-    // delete pinners[address]
+    pinners[address].drop()
+    delete pinners[address]
 
     // Unfortunately, since we can't remove a item from the database without it's hash
     // So we have to rebuild the data every time we remove an item.
