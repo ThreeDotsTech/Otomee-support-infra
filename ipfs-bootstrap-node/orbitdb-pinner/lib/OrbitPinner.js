@@ -19,6 +19,7 @@ class Pinner {
       orbitdb = await OrbitDB.createInstance(ipfs, { identity })
     }
     const db = await Pinner.openDatabase(orbitdb, address)
+    if (!db) return
     return Promise.resolve(new Pinner(db))
   }
 

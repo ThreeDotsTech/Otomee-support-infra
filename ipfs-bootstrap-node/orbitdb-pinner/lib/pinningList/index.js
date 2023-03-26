@@ -34,8 +34,6 @@ const add =
     if (!addresses.includes(address)) {
       await db.add(address)
       createPinnerInstance(address)
-
-      console.log(`${address} added.`)
     } else {
       console.warn(`Attempted to add ${address}, but already present in db.`)
     }
@@ -61,8 +59,10 @@ const createPinnerInstance =
 
     console.log(`Pinning orbitdb @ ${address}`)
     const pinner = await OrbitPinner.create(address)
-    pinners[address] = pinner
+    if (!pinner) return
 
+    pinners[address] = pinner
+    console.log(`${address} added to pinnging list.`)
     return pinners[address]
   }
 
