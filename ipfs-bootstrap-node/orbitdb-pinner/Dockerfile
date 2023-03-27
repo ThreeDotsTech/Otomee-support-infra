@@ -9,8 +9,7 @@ COPY ./package.json .
 COPY ./package-lock.json .
 
 ENV NODE_ENV=production
-RUN npm install -g pnpm
-RUN pnpm install
+RUN npm i
 
 FROM alpine
 
