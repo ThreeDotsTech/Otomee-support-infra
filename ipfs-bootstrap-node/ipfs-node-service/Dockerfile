@@ -10,7 +10,7 @@ RUN npm install --unsafe-perm -g ipfs@$IPFS_VERSION
 
 # Make the image a bit smaller
 RUN npm cache clear --force
-RUN apk del build-base python git
+RUN apk del build-base python3 git
 
 # Configure jsipfs
 RUN jsipfs init
