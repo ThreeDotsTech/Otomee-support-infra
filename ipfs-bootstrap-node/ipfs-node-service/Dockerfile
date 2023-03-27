@@ -4,7 +4,7 @@ ENV IPFS_MONITORING=1
 ENV IPFS_PATH=/root/.jsipfs
 ENV BUILD_DEPS='libnspr4 libnspr4-dev libnss3'
 ENV IPFS_VERSION=0.66.0
-RUN apk add --no-cache git python build-base
+RUN apk add --no-cache git python3 build-base
 
 RUN npm install --unsafe-perm -g ipfs@$IPFS_VERSION
 
