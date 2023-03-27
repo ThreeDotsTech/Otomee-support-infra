@@ -1,5 +1,4 @@
-FROM mhart/alpine-node:16
-
+FROM node:16-alpine
 ENV IPFS_MONITORING=1
 ENV IPFS_PATH=/root/.jsipfs
 ENV BUILD_DEPS='libnspr4 libnspr4-dev libnss3'
