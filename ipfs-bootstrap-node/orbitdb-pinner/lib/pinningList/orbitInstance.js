@@ -1,8 +1,8 @@
-const OrbitDB = require('orbit-db')
+import OrbitDB from 'orbit-db'
 
-const ipfsInstanceP = require('../ipfsInstance')
+import ipfsInstanceP from '../ipfsInstance.js'
 
-const orbitInstance = new Promise(resolve => {
+export default new Promise(resolve => {
   ipfsInstanceP.then(ipfsInstance => {
     resolve(OrbitDB.createInstance(ipfsInstance, {
       directory: './orbitdb/pinner/Manifest'
@@ -27,5 +27,3 @@ const createDbInstance = async addr => {
 
   return db
 }
-
-module.exports = createDbInstance

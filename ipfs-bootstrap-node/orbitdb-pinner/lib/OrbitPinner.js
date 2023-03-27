@@ -1,10 +1,11 @@
-'use strict'
-const OrbitDB = require('orbit-db')
-const Identities = require('orbit-db-identity-provider')
+import OrbitDB from 'orbit-db'
+import Identities from 'orbit-db-identity-provider'
+import ipfs from './ipfsInstance.js'
+
 let orbitdb
 
 
-class Pinner {
+export class Pinner {
   constructor(db) {
     this.db = db
     this.address = db.id
@@ -13,7 +14,6 @@ class Pinner {
 
   static async create(address) {
     console.log('creating db for', address)
-    const ipfs = await require('./ipfsInstance')
     if (!orbitdb) {
       let identity = await Identities.createIdentity({ type: "ethereum" })
       orbitdb = await OrbitDB.createInstance(ipfs, { identity })
@@ -86,5 +86,3 @@ class Pinner {
     }
   }
 }
-
-module.exports = Pinner

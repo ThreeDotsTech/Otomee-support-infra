@@ -1,13 +1,13 @@
-const OrbitDB = require('orbit-db')
+import OrbitDB from 'orbit-db'
 
-const OrbitPinner = require('../OrbitPinner')
-const orbitInstance = require('./orbitInstance')
+import { Pinner as OrbitPinner } from '../OrbitPinner.js'
+import orbitInstance from './orbitInstance.js'
 
 const pinners = {}
 
-const getContents =
+export const getContents =
   async () => {
-    const db = await orbitInstance()
+    const db = await orbitInstance
 
     return db.iterator({ limit: -1 })
       .collect()
@@ -18,9 +18,9 @@ const getContents =
       )
   }
 
-const getPinners = () => pinners
+export const getPinners = () => pinners
 
-const add =
+export const add =
   async (address) => {
     const db = await orbitInstance()
 
@@ -39,7 +39,7 @@ const add =
     }
   }
 
-const create =
+export const create =
   async (name) => {
     const db = await orbitInstance()
 
@@ -78,7 +78,7 @@ const startPinning =
       .map(createPinnerInstance)
   }
 
-const remove =
+export const remove =
   async (address) => {
     if (!OrbitDB.isValidAddress(address)) {
       console.log(`Failed to unpin ${address}. This is not a valid address`)
@@ -110,7 +110,7 @@ const remove =
     console.log(`${address} removed.`)
   }
 
-const follow =
+export const follow =
   async (address) => {
     if (!OrbitDB.isValidAddress(address)) {
       console.log(`Failed to follow ${address}. This is not a valid address`)
@@ -126,11 +126,3 @@ const follow =
 console.log('Pinning previously added orbitdbs: ')
 startPinning()
 
-module.exports = {
-  add,
-  create,
-  getContents,
-  getPinners,
-  remove,
-  follow
-}

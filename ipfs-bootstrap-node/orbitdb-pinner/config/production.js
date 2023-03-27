@@ -12,13 +12,12 @@ const ipfs = create({ host: '127.0.0.1', port: '5002', protocol: 'http' })
 //   config: {}
 // }) // Inject my config
 
-module.exports = () => {
-  return {
-    http: {
-      port: 3000,
-      enabled: true
-    },
-    'ipfsHttpModule': ipfs,
-    //ipfsModule: ipfs
-  }
+export default {
+  http: {
+    port: 3000,
+    enabled: true
+  },
+  'ipfsHttpModule': ipfs,
+  //ipfsModule: ipfs
 }
+

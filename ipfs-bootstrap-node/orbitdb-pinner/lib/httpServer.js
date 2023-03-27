@@ -1,11 +1,11 @@
-const config = require('config')
+import config from '../config/index.js'
 
-const express = require('express')
+import express from 'express'
 const app = express()
 
-const pinningList = require('./pinningList')
+import * as pinningList from './pinningList/index.js'
 
-class server {
+export class server {
   constructor(httpPort) {
     const port = httpPort || config.get('http.port')
 
@@ -65,4 +65,3 @@ class server {
   }
 }
 
-module.exports = server
