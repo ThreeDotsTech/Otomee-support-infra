@@ -24,4 +24,4 @@ EXPOSE 8081
 EXPOSE 5002
 EXPOSE 9090
 
-CMD jsipfs daemon --migrate
+CMD jsipfs daemon
