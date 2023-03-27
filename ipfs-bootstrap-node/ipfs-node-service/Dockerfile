@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:12
+FROM mhart/alpine-node:16
 
 ENV IPFS_MONITORING=1
 ENV IPFS_PATH=/root/.jsipfs
