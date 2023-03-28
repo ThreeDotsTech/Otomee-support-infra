@@ -9,6 +9,7 @@ COPY ./package.json .
 COPY ./package-lock.json .
 
 ENV NODE_ENV=production
+RUN npm install -g npm@9.6.2
 RUN npm i -g esbuild
 RUN npm install
 
