@@ -10,7 +10,7 @@ const orbitInstance = new Promise(resolve => {
   })
 })
 
-export default createDbInstance = async addr => {
+export default async addr => {
   const address = addr || 'dbList'
   const dbInstance = await orbitInstance
 
