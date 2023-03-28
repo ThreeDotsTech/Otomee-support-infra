@@ -3,6 +3,7 @@ import Identities from 'orbit-db-identity-provider'
 import ipfs from './ipfsInstance.js'
 
 let orbitdb
+let ipfsInstance
 
 
 export class Pinner {
@@ -14,9 +15,14 @@ export class Pinner {
 
   static async create(address) {
     console.log('creating db for', address)
+    if (!ipfsInstance) {
+      ipfs.then(newIpfs => {
+        ipfsInstance = newIpfs
+      })
+    }
     if (!orbitdb) {
       let identity = await Identities.createIdentity({ type: "ethereum" })
-      orbitdb = await OrbitDB.createInstance(ipfs, { identity })
+      orbitdb = await OrbitDB.createInstance(ipfsInstance, { identity })
     }
     const db = await Pinner.openDatabase(orbitdb, address)
     if (!db) return
@@ -25,10 +31,14 @@ export class Pinner {
 
   static async new(name) {
     console.log('creating new db with name', name)
-    const ipfs = await require('./ipfsInstance')
+    if (!ipfsInstance) {
+      ipfs.then(newIpfs => {
+        ipfsInstance = newIpfs
+      })
+    }
     if (!orbitdb) {
       let identity = await Identities.createIdentity({ type: "ethereum" })
-      orbitdb = await OrbitDB.createInstance(ipfs, { identity })
+      orbitdb = await OrbitDB.createInstance(ipfsInstance, { identity })
     }
     const db = await Pinner.createDatabase(orbitdb, name)
     return Promise.resolve(new Pinner(db))
