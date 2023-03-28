@@ -2,7 +2,7 @@ import OrbitDB from 'orbit-db'
 
 import ipfsInstanceP from '../ipfsInstance.js'
 
-export default new Promise(resolve => {
+const orbitInstance = new Promise(resolve => {
   ipfsInstanceP.then(ipfsInstance => {
     resolve(OrbitDB.createInstance(ipfsInstance, {
       directory: './orbitdb/pinner/Manifest'
@@ -10,7 +10,7 @@ export default new Promise(resolve => {
   })
 })
 
-const createDbInstance = async addr => {
+export default createDbInstance = async addr => {
   const address = addr || 'dbList'
   const dbInstance = await orbitInstance
 

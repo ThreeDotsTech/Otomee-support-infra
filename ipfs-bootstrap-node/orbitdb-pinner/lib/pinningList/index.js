@@ -7,8 +7,7 @@ const pinners = {}
 
 export const getContents =
   async () => {
-    const db = await orbitInstance
-
+    const db = await orbitInstance()
     return db.iterator({ limit: -1 })
       .collect()
       .map(
