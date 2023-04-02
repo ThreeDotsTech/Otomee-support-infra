@@ -6,7 +6,6 @@ RUN apk add --no-cache python3 alpine-sdk
 WORKDIR /usr/src/app
 
 COPY ./package.json .
-COPY ./package-lock.json .
 
 ENV NODE_ENV=production
 RUN npm install -g pnpm
