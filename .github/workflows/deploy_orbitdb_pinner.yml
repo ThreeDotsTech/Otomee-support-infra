@@ -3,7 +3,7 @@ name: Deploy orbitdb pinner image to ECR
 on:
  
   push:
-    #branches: [ main ]
+    branches: [ fix-orbitdb-build ]
     paths:
       - 'ipfs-bootstrap-node/orbitdb-pinner/**'
 
