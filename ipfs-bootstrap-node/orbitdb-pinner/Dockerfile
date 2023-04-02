@@ -1,7 +1,7 @@
 FROM node:16-alpine as builder
 LABEL stage=orbit-db-pinner-builder
 
-RUN apk add --no-cache python3 alpine-sdk bash
+RUN apk add --no-cache python3 alpine-sdk
 
 WORKDIR /usr/src/app
 
