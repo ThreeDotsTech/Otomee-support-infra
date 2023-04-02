@@ -1,7 +1,7 @@
-FROM alpine as builder
+FROM node:16-alpine as builder
 LABEL stage=orbit-db-pinner-builder
 
-RUN apk add --no-cache nodejs npm python3 alpine-sdk
+RUN apk add --no-cache python3 alpine-sdk bash
 
 WORKDIR /usr/src/app
 
@@ -12,7 +12,7 @@ ENV NODE_ENV=production
 RUN npm install -g pnpm
 RUN pnpm install
 
-FROM alpine
+FROM node:16-alpine
 
 
 RUN apk add --no-cache nodejs
