@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      
+
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -39,8 +39,21 @@ jobs:
     - name: Install Graph CLI
       run: npm install -g @graphprotocol/graph-cli
     
+    - name: Install dependencies
+      run: |
+        cd ${{ github.workspace }}/subgraphs/
+        npm install
+    
     - name: Authenticate with GitHub Package Registry
       run: graph auth --studio ${{ secrets.THE_GRAPH_STUDIO_TOKEN }}
+    
+    - name: Install dependencies
+      if: steps.filter.outputs.eip1155 == 'true'
+      run: |
+        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
+        graph codegen
+        graph build
+        graph deploy --studio otomee-eip1155-goerli
 
     - name: Build and deploy eip1155 Subgraph
       if: steps.filter.outputs.eip1155 == 'true'
