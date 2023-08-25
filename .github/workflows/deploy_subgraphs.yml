@@ -4,11 +4,12 @@ name: Deploy TheGraph Subgraphs
 on:
   push:
     paths:
-      #- 'subgraphs/generated/live/goerli/eip721/**'
+      - 'subgraphs/generated/live/goerli/eip721/**'
       - 'subgraphs/generated/live/goerli/eip1155/**'
 
 jobs:    
   deploy-eip721:
+    
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.head_commit.modified, 'subgraphs/generated/live/goerli/eip721/') }}
     
@@ -46,9 +47,16 @@ jobs:
 
   deploy-eip1155:
     runs-on: ubuntu-latest
-    if: ${{ contains(github.event.head_commit.modified, 'subgraphs/generated/live/goerli/eip1155/') }}
-
+    
     steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          eip721:
+            - 'subgraphs/generated/live/goerli/eip721/**'
+          eip1155:
+            - 'subgraphs/generated/live/goerli/eip1155/**'
     - name: Checkout code
       uses: actions/checkout@v2
 
@@ -66,16 +74,22 @@ jobs:
 
     - name: Install Graph CLI
       run: npm install -g @graphprotocol/graph-cli
-
-    - name: Build eip1155 Subgraph
-      run: |
-        cd subgraphs/generated/live/goerli/eip1155
-        graph codegen
-        graph build
     
     - name: Authenticate with GitHub Package Registry
       run: graph auth --studio ${{ secrets.THE_GRAPH_STUDIO_TOKEN }}
-    
-    - name: Deploy The Subgraph
+
+    - name: Build and deploy eip1155 Subgraph
+      if: steps.filter.outputs.eip1155 == 'true'
       run: |
+        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
+        graph codegen
+        graph build
         graph deploy --studio otomee-eip1155-goerli
+
+    - name: Build and deploy eip721 Subgraph
+      if: steps.filter.outputs.eip721 == 'true'
+      run: |
+        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
+        graph codegen
+        graph build
+        graph deploy --studio otomee-eip721-goerli
