@@ -31,7 +31,7 @@ jobs:
     
 
     - name: Install Graph CLI
-      run: npm install -g @graphprotocol/graph-cli@0.42.2
+      run: npm install -g @graphprotocol/graph-cli@0.49.0
     
     - name: Install dependencies
       run: |
