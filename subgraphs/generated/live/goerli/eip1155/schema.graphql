@@ -70,3 +70,4 @@ type Transaction @entity(immutable: true) {
 	blockNumber: BigInt!
 	events: [Event!]! @derivedFrom(field: "transaction")
 }
+
