@@ -69,4 +69,4 @@ jobs:
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
         graph codegen
         graph build
-        graph deploy --studio otomee-eip721-goerli
+        # graph deploy --studio otomee-eip721-goerli
