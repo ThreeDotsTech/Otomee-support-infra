@@ -16,7 +16,7 @@ dataSources:
         - ERC1155Contract
       abis:
         - name: IERC1155
-          file: ..\..\..\../node_modules/@openzeppelin/contracts/build/contracts/IERC1155MetadataURI.json
+          file: ../../../../node_modules/@openzeppelin/contracts/build/contracts/IERC1155MetadataURI.json
       eventHandlers:
         - event: ApprovalForAll(indexed address,indexed address,bool)
           handler: handleApprovalForAll
@@ -26,4 +26,4 @@ dataSources:
           handler: handleTransferSingle
         - event: URI(string,indexed uint256)
           handler: handleURI
-      file: ..\..\..\..\node_modules\@openzeppelin\subgraphs\src\datasources\erc1155.ts
+      file: ../../../../node_modules/@openzeppelin/subgraphs/src/datasources/erc1155.ts
