@@ -29,12 +29,6 @@ jobs:
       with:
         node-version: '18.17.1'
     
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        path: '**/node_modules'
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.lock') }}
-        restore-keys: ${{ runner.os }}-node-modules-
 
     - name: Install Graph CLI
       run: npm install -g @graphprotocol/graph-cli
