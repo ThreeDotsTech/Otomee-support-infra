@@ -55,7 +55,7 @@ jobs:
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
         graph codegen
         graph build
-        graph deploy --studio otomee-eip1155-goerli
+        # graph deploy --studio otomee-eip1155-goerli
 
     - name: Build and deploy eip721 Subgraph
       if: steps.filter.outputs.eip721 == 'true'
