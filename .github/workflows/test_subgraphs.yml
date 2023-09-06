@@ -8,7 +8,7 @@ on:
       - 'subgraphs/generated/live/goerli/eip1155/**'
 
 jobs:    
-  deploy:
+  test:
     runs-on: ubuntu-latest
     
     steps:
