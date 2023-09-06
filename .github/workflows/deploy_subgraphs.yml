@@ -35,6 +35,9 @@ jobs:
     - name: Install Graph CLI
       run: npm install -g @graphprotocol/graph-cli@0.49.0
     
+    - name: Install utilities
+      run: pip install shyaml 
+    
     - name: Install dependencies
       run: |
         cd ${{ github.workspace }}/subgraphs/
@@ -49,7 +52,8 @@ jobs:
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
         graph codegen
         graph build
-        graph deploy --studio otomee-eip1155-goerli
+        version=`cat ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155/subgraph.yaml | shyaml get-value specVersion`
+        graph deploy --studio otomee-eip1155-goerli --version-label $version
 
     - name: Build and deploy eip721 Subgraph
       if: ${{ steps.filter.outputs.eip721 == 'true' }}
@@ -57,4 +61,5 @@ jobs:
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
         graph codegen
         graph build
-        graph deploy --studio otomee-eip721-goerli
+        version=`cat ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721/subgraph.yaml | shyaml get-value specVersion`
+        graph deploy --studio otomee-eip721-goerli --version-label $version
