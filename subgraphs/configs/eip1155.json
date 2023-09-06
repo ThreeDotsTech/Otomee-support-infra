@@ -1,0 +1,10 @@
+{
+    "output": "generated/live/goerli/eip1155.",
+    "chain": "goerli",
+    "datasources": [
+        {
+            "startBlock": 3949560,
+            "module": "erc1155"
+        }
+    ]
+}
