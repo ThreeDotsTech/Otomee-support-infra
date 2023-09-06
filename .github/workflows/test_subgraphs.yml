@@ -1,4 +1,4 @@
-name: Deploy TheGraph Subgraphs
+name: Test TheGraph Subgraphs
 
 # This workflow is triggered when changes are pushed to the subgraphs folders.
 on:
