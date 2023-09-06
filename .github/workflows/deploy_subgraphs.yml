@@ -3,6 +3,8 @@ name: Deploy TheGraph Subgraphs
 # This workflow is triggered when changes are pushed to the subgraphs folders.
 on:
   push:
+    branches:
+      - 'main'
     paths:
       - 'subgraphs/generated/live/goerli/eip721/**'
       - 'subgraphs/generated/live/goerli/eip1155/**'
@@ -47,7 +49,7 @@ jobs:
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
         graph codegen
         graph build
-        # graph deploy --studio otomee-eip1155-goerli
+        graph deploy --studio otomee-eip1155-goerli
 
     - name: Build and deploy eip721 Subgraph
       if: ${{ steps.filter.outputs.eip721 == 'true' }}
@@ -55,4 +57,4 @@ jobs:
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
         graph codegen
         graph build
-        # graph deploy --studio otomee-eip721-goerli
+        graph deploy --studio otomee-eip721-goerli
