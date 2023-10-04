@@ -1,6 +1,6 @@
 name: Deploy TheGraph Subgraphs
 
-# This workflow is triggered when changes are pushed to the subgraphs folders.
+# This workflow is triggered when changes are pushed to the subgraphs folders into the main branch.
 on:
   push:
     branches:
