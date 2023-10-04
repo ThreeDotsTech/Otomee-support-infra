@@ -42,14 +42,14 @@ jobs:
     - name: Authenticate with GitHub Package Registry
       run: graph auth --studio ${{ secrets.THE_GRAPH_STUDIO_TOKEN }}
 
-    - name: Build and deploy eip1155 Subgraph
+    - name: Build eip1155 Subgraph
       if:  steps.filter.outputs.eip1155 == 'true'
       run: |
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
         graph codegen
         graph build
 
-    - name: Build and deploy eip721 Subgraph
+    - name: Build eip721 Subgraph
       if: ${{ steps.filter.outputs.eip721 == 'true' }}
       run: |
         cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
