@@ -3,6 +3,8 @@ name: Test TheGraph Subgraphs
 # This workflow is triggered when changes are pushed to the subgraphs folders.
 on:
   push:
+    branches-ignore:
+      - 'main'
     paths:
       - 'subgraphs/generated/live/goerli/eip721/**'
       - 'subgraphs/generated/live/goerli/eip1155/**'
