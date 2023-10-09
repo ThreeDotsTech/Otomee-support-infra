@@ -44,7 +44,7 @@ jobs:
         npm install
     
     - name: Authenticate with GitHub Package Registry
-      run: graph --product hosted-service ${{ secrets.THE_GRAPH_HOSTED_SERVICE_TOKEN }}
+      run: graph auth --product hosted-service ${{ secrets.THE_GRAPH_HOSTED_SERVICE_TOKEN }}
 
     - name: Build and deploy eip1155 Subgraph
       if:  steps.filter.outputs.eip1155 == 'true'
