@@ -44,7 +44,7 @@ jobs:
         npm install
     
     - name: Authenticate with GitHub Package Registry
-      run: graph auth --product hosted-service ${{ secrets.THE_GRAPH_HOSTED_SERVICE_TOKEN }}
+      run: graph auth --studio ${{ secrets.THE_GRAPH_STUDIO_TOKEN }}
 
     - name: Build and deploy eip1155 Subgraph
       if:  steps.filter.outputs.eip1155 == 'true'
@@ -53,7 +53,7 @@ jobs:
         graph codegen
         graph build
         version=`cat ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155/subgraph.yaml | shyaml get-value specVersion`
-        graph deploy --product hosted-service threedotstech/eip1155-goerli
+        graph deploy --studio otomee-eip1155-goerli --version-label $version
 
     - name: Build and deploy eip721 Subgraph
       if: ${{ steps.filter.outputs.eip721 == 'true' }}
@@ -62,4 +62,4 @@ jobs:
         graph codegen
         graph build
         version=`cat ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721/subgraph.yaml | shyaml get-value specVersion`
-        graph deploy --product hosted-service threedotstech/eip721-goerli
+        graph deploy --studio otomee-eip721-goerli --version-label $version
