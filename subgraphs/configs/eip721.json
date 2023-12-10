@@ -1,9 +1,9 @@
 {
-    "output": "generated/live/goerli/eip721.",
-    "chain": "goerli",
+    "output": "generated/live/sepolia/eip721.",
+    "chain": "sepolia",
     "datasources": [
         {
-            "startBlock": 3949560,
+            "startBlock": 0,
             "module": "erc721"
         }
     ]

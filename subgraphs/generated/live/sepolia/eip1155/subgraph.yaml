@@ -1,13 +1,13 @@
-specVersion: 0.0.5
+specVersion: 0.0.1
 schema:
   file: schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: erc1155
-    network: goerli
+    network: sepolia
     source:
       abi: IERC1155
-      startBlock: 3949560
+      startBlock: 0
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
