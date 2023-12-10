@@ -6,8 +6,8 @@ on:
     branches:
       - 'main'
     paths:
-      - 'subgraphs/generated/live/goerli/eip721/**'
-      - 'subgraphs/generated/live/goerli/eip1155/**'
+      - 'subgraphs/generated/live/sepolia/eip721/**'
+      - 'subgraphs/generated/live/sepolia/eip1155/**'
 
 jobs:    
   deploy:
@@ -22,9 +22,9 @@ jobs:
       with:
         filters: |
           eip721:
-            - 'subgraphs/generated/live/goerli/eip721/**'
+            - 'subgraphs/generated/live/sepolia/eip721/**'
           eip1155:
-            - 'subgraphs/generated/live/goerli/eip1155/**'
+            - 'subgraphs/generated/live/sepolia/eip1155/**'
 
     - name: Install Node.js
       uses: actions/setup-node@v2
@@ -49,17 +49,17 @@ jobs:
     - name: Build and deploy eip1155 Subgraph
       if:  steps.filter.outputs.eip1155 == 'true'
       run: |
-        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
+        cd ${{ github.workspace }}/subgraphs/generated/live/sepolia/eip1155
         graph codegen
         graph build
-        version=`cat ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155/subgraph.yaml | shyaml get-value specVersion`
-        graph deploy --studio otomee-eip1155-goerli --version-label $version
+        version=`cat ${{ github.workspace }}/subgraphs/generated/live/sepolia/eip1155/subgraph.yaml | shyaml get-value specVersion`
+        graph deploy --studio otomee-eip1155-sepolia --version-label $version
 
     - name: Build and deploy eip721 Subgraph
       if: ${{ steps.filter.outputs.eip721 == 'true' }}
       run: |
-        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
+        cd ${{ github.workspace }}/subgraphs/generated/live/sepolia/eip721
         graph codegen
         graph build
-        version=`cat ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721/subgraph.yaml | shyaml get-value specVersion`
-        graph deploy --studio otomee-eip721-goerli --version-label $version
+        version=`cat ${{ github.workspace }}/subgraphs/generated/live/sepolia/eip721/subgraph.yaml | shyaml get-value specVersion`
+        graph deploy --studio otomee-eip721-sepolia --version-label $version

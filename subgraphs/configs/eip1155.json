@@ -1,9 +1,9 @@
 {
-    "output": "generated/live/goerli/eip1155.",
-    "chain": "goerli",
+    "output": "generated/live/sepolia/eip1155.",
+    "chain": "sepolia",
     "datasources": [
         {
-            "startBlock": 3949560,
+            "startBlock": 0,
             "module": "erc1155"
         }
     ]

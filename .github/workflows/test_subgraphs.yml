@@ -6,8 +6,8 @@ on:
     branches-ignore:
       - 'main'
     paths:
-      - 'subgraphs/generated/live/goerli/eip721/**'
-      - 'subgraphs/generated/live/goerli/eip1155/**'
+      - 'subgraphs/generated/live/sepolia/eip721/**'
+      - 'subgraphs/generated/live/sepolia/eip1155/**'
 
 jobs:    
   test:
@@ -23,9 +23,9 @@ jobs:
         base: ${{ github.ref }}
         filters: |
           eip721:
-            - 'subgraphs/generated/live/goerli/eip721/**'
+            - 'subgraphs/generated/live/sepolia/eip721/**'
           eip1155:
-            - 'subgraphs/generated/live/goerli/eip1155/**'
+            - 'subgraphs/generated/live/sepolia/eip1155/**'
 
     - name: Install Node.js
       uses: actions/setup-node@v2
@@ -44,13 +44,13 @@ jobs:
     - name: Build eip1155 Subgraph
       if:  steps.filter.outputs.eip1155 == 'true'
       run: |
-        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip1155
+        cd ${{ github.workspace }}/subgraphs/generated/live/sepolia/eip1155
         graph codegen
         graph build
 
     - name: Build eip721 Subgraph
       if: ${{ steps.filter.outputs.eip721 == 'true' }}
       run: |
-        cd ${{ github.workspace }}/subgraphs/generated/live/goerli/eip721
+        cd ${{ github.workspace }}/subgraphs/generated/live/sepolia/eip721
         graph codegen
         graph build
